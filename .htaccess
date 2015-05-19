@@ -1,0 +1,9 @@
+rewriteEngine On
+RewriteCond $1 !^(index\.php|images|static|html|robots\.txt|test\.php)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+#SetEnvIf Host <a href="http://www.yoursite.tld$">http://www.yoursite.tld$</a> CI_ENV=production
+#SetEnvIf Host test.yoursite.tld$ CI_ENV=testing
+#SetEnvIf Host localhost$ CI_ENV=development
