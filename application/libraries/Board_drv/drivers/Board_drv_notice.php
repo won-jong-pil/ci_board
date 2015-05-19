@@ -81,7 +81,7 @@ class Board_drv_notice extends CI_Driver
 	 * @history
 	 * @param (array)$config : 게시판 설정값
 	 * @return boolean $result['result'] : insert 결과 ( true: 성공 false : 실패)
-	 * @return string $result['error'] : 에러 메세지 
+	 * @return string $result['error'] : 에러 메세지 //
 	 */
 	public function insert()
 	{
