@@ -92,7 +92,7 @@ class Board_drv_notice extends CI_Driver
     	$data['reg_date'] = date('Y-m-d H:i:s');
 
 		$result['result'] = $this->CI->db->insert($this->board_table_name, $data);
-		$insert_idx = $this->CI->db->insert_id();
+		$insert_idx = $result['idx'] = $this->CI->db->insert_id();
 		
 		if($result['result'] === FALSE)
 		{
@@ -102,9 +102,9 @@ class Board_drv_notice extends CI_Driver
 		
 		if($this->debug == 'Y')
 		{
-			$this->add_debug($this->board_table_name.'_insert_result', $result['result'], 'debug');
-			$this->add_debug($this->board_table_name.'_insert_data', json_encode($data), 'debug');
-			$this->add_debug($this->board_table_name.'_insert_query', $this->CI->db->last_query(), 'debug');
+			$this->add_debug($this->board_table_name.'_insert_result', $result['result']);
+			$this->add_debug($this->board_table_name.'_insert_data', json_encode($data));
+			$this->add_debug($this->board_table_name.'_insert_query', $this->CI->db->last_query());
 		}		
 		
 		if($this->get_attr('etc.board_file_use') == 'Y')
@@ -120,7 +120,7 @@ class Board_drv_notice extends CI_Driver
 				$upload_config['encrypt_name'] = TRUE;
 				$this->CI->upload->initialize($upload_config);
 				
-				if($this->debug == 'Y') $this->add_debug($this->board_table_name.'_upload_config', @json_encode($upload_config), 'debug');
+				if($this->debug == 'Y') $this->add_debug($this->board_table_name.'_upload_config', @json_encode($upload_config));
 								
 				if(isset($_FILES[$key]) === TRUE && empty($_FILES[$key]['tmp_name']) === FALSE)
 				{
@@ -170,9 +170,9 @@ class Board_drv_notice extends CI_Driver
 						$result['file_result'][$key] = $this->CI->db->insert('file_info', $file_info);
 						if($this->debug == 'Y') 
 						{
-							$this->add_debug($this->board_table_name.'_upload_data', @json_encode($file_info), 'debug');
-							$this->add_debug($this->board_table_name.'_upload_data_query', $this->CI->db->last_query(), 'debug');
-							$this->add_debug($this->board_table_name.'_upload_thumb_data', @$thumb_file_name, 'debug');
+							$this->add_debug($this->board_table_name.'_upload_data', @json_encode($file_info));
+							$this->add_debug($this->board_table_name.'_upload_data_query', $this->CI->db->last_query());
+							$this->add_debug($this->board_table_name.'_upload_thumb_data', @$thumb_file_name);
 						}
 					}
 				}		
@@ -207,8 +207,8 @@ class Board_drv_notice extends CI_Driver
 		
 		if($this->debug == 'Y') 
 		{
-			$this->add_debug($this->board_table_name.'_update_result', $result['result'], 'debug');
-			$this->add_debug($this->board_table_name.'_update_query', $this->CI->db->last_query(), 'debug');
+			$this->add_debug($this->board_table_name.'_update_result', $result['result']);
+			$this->add_debug($this->board_table_name.'_update_query', $this->CI->db->last_query());
 		}
 
 		if($this->get_attr('etc.board_file_use') == 'Y')
@@ -301,9 +301,9 @@ class Board_drv_notice extends CI_Driver
 							$result['file_result'][$key] = $this->CI->db->update('file_info', $file_info);
 							if($this->debug == 'Y')
 							{
-								$this->add_debug($this->board_table_name.'_upload_data', @json_encode($file_info), 'debug');
-								$this->add_debug($this->board_table_name.'_upload_data_query', $this->CI->db->last_query(), 'debug');
-								if($list['thumb_use'] == 'Y') $this->add_debug($this->board_table_name.'_upload_thumb_data', @$thumb_file_name, 'debug');
+								$this->add_debug($this->board_table_name.'_upload_data', @json_encode($file_info));
+								$this->add_debug($this->board_table_name.'_upload_data_query', $this->CI->db->last_query());
+								if($list['thumb_use'] == 'Y') $this->add_debug($this->board_table_name.'_upload_thumb_data', @$thumb_file_name);
 							}							
 						}
 						else

@@ -17,3 +17,6 @@ $lang['board_rule_title']			= '제목은 필수 항목입니다.';
 $lang['board_rule_contents']			= '내용은 필수 항목입니다.';
 
 $lang['board_web_file_title']			= '이미지';
+
+$lang['board_reg_complete']			= '등록되었습니다.';
+$lang['board_reg_fail']			= '등록이 실패하였습니다..';

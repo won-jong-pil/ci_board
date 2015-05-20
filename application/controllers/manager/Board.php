@@ -96,7 +96,7 @@ class Board extends CI_Controller
 		}
 		$this->view_data = $config =  array_merge($this->view_data, $search_array);//검색 항목을 view로 전달		
 		//데이터 가져오기
-		$config['debug'] = 'N';
+		$config['debug'] = 'Y';
 		$config['vnum_use'] = 'Y';
 		$config['board_code'] = $url_array['brd'];
 		$config['page'] = (isset($url_array['page']) === TRUE && empty($url_array['page']) === FALSE)?$url_array['page']:1;
@@ -209,36 +209,39 @@ class Board extends CI_Controller
 			try
 			{
 				$result = $this->board_drv->insert($config);
-/*				foreach($this->board_drv->get_attr('etc.file_list') as $key=>$list)
+				$file_use = $this->board_drv->get_attr('etc.board_file_use');
+				if($file_use == 'Y')
 				{
-					if(isset($file_error) === TRUE && $file_error !== FALSE)
-					{
-						$error_str .= $file_error.'\n';
-					}
-				}	*/	
-	
+					$this->load->model('file_model');
+					$file_config['file_list'] = $this->board_drv->get_attr('etc.file_list');
+					$file_config['board_code'] = $url_array['brd'];
+					$file_config['insert_idx'] = $result['idx'];
+
+					$this->file_model->file_upload($file_config);
+				}
+
 				$is_ajax = $this->input->is_ajax_request();
 		
 				if($is_ajax === TRUE)
 				{
 					if($result['result'] === TRUE) echo json_encode(array('result'=>TRUE, 'data'=>$result['result']));
-					else  echo json_encode(array('result'=>FALSE, 'data'=>'', 'msg'=>'등록이 실패 하였습니다.'));
+					else  echo json_encode(array('result'=>FALSE, 'data'=>'', 'msg'=>$this->lang->line('board_reg_fail')));
 				}
 				else
 				{		
 					if($result['result'] === TRUE)
 					{
-						alert($error_str.'등록되었습니다.', '/manager/board/listing/'.$url, TRUE);
+						alert($this->lang->line('board_reg_complete'), '/manager/board/listing/'.$url, TRUE);
 					}
 					else
 					{
-						alert('등록이 실패하였습니다.', '', TRUE);
+						alert($this->lang->line('board_reg_fail'), '', TRUE);
 					}
 				}
 			}
 			catch(Exception $e)
 			{
-				alert('등록이 실패하였습니다.', '', TRUE);
+				alert($this->lang->line('board_reg_fail'), '', TRUE);
 			}
 		}
 	}

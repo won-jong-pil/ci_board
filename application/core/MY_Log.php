@@ -48,7 +48,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class MY_Log extends CI_Log {
 
-	protected $_levels = array('ERROR' => 1, 'DEBUG' => 2, 'INFO' => 3, 'ALL' => 4, 'TEST' => 5);
+	protected $_levels = array('ERROR' => 1, 'DEBUG' => 2, 'INFO' => 3, 'ALL' => 4, 'TDEBUG' => 5);
 
     public function __construct()
     {
@@ -112,7 +112,18 @@ class MY_Log extends CI_Log {
 			$date = date($this->_date_fmt);
 		}
 
-		$message .= $level.' - '.$date.' --> '.$msg."\n";
+		if(is_array($msg) === TRUE)
+		{
+			$message .= '======================================================'."\n";	
+			$print_data = print_r($msg, TRUE);
+			$message .= $level.' - '.$date."\n";
+			$message .= $print_data;
+			$message .= '======================================================'."\n";	
+		}
+		else
+		{
+			$message .= $level.' - '.$date.' --> '.$msg."\n";
+		}
 
 		flock($fp, LOCK_EX);
 
