@@ -6,6 +6,8 @@
 class Board extends CI_Controller 
 {
 	var $view_data = array();//뷰에 전달할 값 저장 배열
+	var $_debug = 'Y';
+	
 	function __construct()
 	{
 		parent::__construct();
@@ -96,7 +98,7 @@ class Board extends CI_Controller
 		}
 		$this->view_data = $config =  array_merge($this->view_data, $search_array);//검색 항목을 view로 전달		
 		//데이터 가져오기
-		$config['debug'] = 'Y';
+		$config['debug'] = $this->_debug;
 		$config['vnum_use'] = 'Y';
 		$config['board_code'] = $url_array['brd'];
 		$config['page'] = (isset($url_array['page']) === TRUE && empty($url_array['page']) === FALSE)?$url_array['page']:1;
@@ -124,7 +126,7 @@ class Board extends CI_Controller
 
 		//페이징 - 이부분에서 설정하지 않은 기본 설정값은 appication/config/pagination.php에 설정
 		$this->load->library('pagination');
-		$page_config['base_url'] = '/board/listing/'.$this->view_data['url'].'/page/';
+		$page_config['base_url'] = '/manager/board/listing/'.$this->view_data['url'].'/page/';
 		$page_config['total_rows'] = $result['record_count'];
 		$page_config['per_page'] = $this->board_drv->get_attr('per_page');
 		$page_config['page_size'] = $this->board_drv->get_attr('page_size');
@@ -152,14 +154,6 @@ class Board extends CI_Controller
 			//레이아웃 처리(출력)
 			$this->load->view($this->view_data['index_file_name'], $this->view_data);
 		}
-		
-		if($config['debug'] != 'N')
-		{
-			echo '<div>';
-			if($config['debug'] == 'T') $this->board_drv->show_debug();
-			if($config['debug'] == 'R') $this->board_drv->write_debug();
-			echo '</div>';
-		}
 	}
 	/**
 	 * @title 게시물 등록 폼
@@ -178,7 +172,7 @@ class Board extends CI_Controller
 		$this->form_validation->set_rules('contents', 'lang:board_rule_contents', 'required');
 	
 		//게시판 정보 가져오기
-		$config['debug'] = 'N';
+		$config['debug'] = $this->_debug;
 		$config['board_code'] = $url_array['brd'];
 		try{
 			$this->load->driver('board_drv',  $config);
@@ -206,40 +200,32 @@ class Board extends CI_Controller
 		}
 		else
 		{
-			try
-			{
+			try{
 				$result = $this->board_drv->insert($config);
-				$file_use = $this->board_drv->get_attr('etc.board_file_use');
-				if($file_use == 'Y')
-				{
-					$this->load->model('file_model');
-					$file_config['file_list'] = $this->board_drv->get_attr('etc.file_list');
-					$file_config['board_code'] = $url_array['brd'];
-					$file_config['insert_idx'] = $result['idx'];
-
-					$this->file_model->file_upload($file_config);
-				}
-
-				$is_ajax = $this->input->is_ajax_request();
-		
-				if($is_ajax === TRUE)
-				{
-					if($result['result'] === TRUE) echo json_encode(array('result'=>TRUE, 'data'=>$result['result']));
-					else  echo json_encode(array('result'=>FALSE, 'data'=>'', 'msg'=>$this->lang->line('board_reg_fail')));
-				}
-				else
-				{		
-					if($result['result'] === TRUE)
-					{
-						alert($this->lang->line('board_reg_complete'), '/manager/board/listing/'.$url, TRUE);
-					}
-					else
-					{
-						alert($this->lang->line('board_reg_fail'), '', TRUE);
-					}
-				}
+			}catch(Exception $e){
+				Log_message('error', 'board_reg_fail');
+				alert($this->lang->line('board_reg_fail'), '', TRUE);
 			}
-			catch(Exception $e)
+			
+			$file_use = $this->board_drv->get_attr('etc.board_file_use');
+			if($file_use == 'Y')
+			{
+				$file_config['debug'] = $this->_debug;
+				$this->load->model('file_model');
+				$this->file_model->initialize($file_config);
+				$file_config['file_list'] = $this->board_drv->get_attr('etc.file_list');
+				$file_config['board_code'] = $url_array['brd'];
+				$file_config['insert_idx'] = $result['idx'];
+
+				$file_result = $this->file_model->file_upload($file_config);
+			}
+
+			if($result['result'] === TRUE)
+			{
+				$url = $this->uri->assoc_to_uri($url_array);
+				alert($this->lang->line('board_reg_complete'), '/manager/board/listing/'.$url, TRUE);
+			}
+			else
 			{
 				alert($this->lang->line('board_reg_fail'), '', TRUE);
 			}
@@ -263,43 +249,53 @@ class Board extends CI_Controller
 		$this->form_validation->set_rules('contents', 'lang:board_rule_contents', 'required');
 	
 		//게시판 정보 가져오기
-		$config['debug'] = 'N';
+		$idx = $url_array['idx'];
+		$config['debug'] = $this->_debug;
 		$config['board_code'] = $url_array['brd'];
 		$this->load->driver('board_drv',  $config);
 
 		if ($this->form_validation->run() === FALSE)
 		{ 		
-			$result = $this->board_drv->get_data($url_array['idx']);
-			if( $result === FALSE ) alert('게시판 정보를 가져오는데 실패하였습니다.', '', TRUE);
+			$result = $this->board_drv->get_data($idx);
+			if( $result === FALSE ) alert($this->lang->line('board_no_data'), '', TRUE);
 	
 			$this->view_data['result'] = $result;
-			$this->view_data['board_name'] = $this->board_drv->get_attr('board_name');
 			$this->view_data['brd'] = $url_array['brd'];
 			$this->view_data['mode'] = 'update';
-			if(isset($url_array['type']) === TRUE) $this->view_data['type'] = $url_array['type'];
-	
-			$idx = $url_array['idx'];
+			$this->view_data['file_use'] = $this->board_drv->get_attr('etc.board_file_use');//파일 사용 여부
+			$this->view_data['board_name'] = $this->board_drv->get_attr('board_name');
+			if($this->view_data['file_use'] == 'Y')
+			{
+				$file_config['debug'] = $this->_debug;
+				$this->load->model('file_model');
+				$this->file_model->initialize($file_config);
+				$file_config['file_list'] = $this->view_data['file_list'] = $this->board_drv->get_attr('etc.file_list');
+				$file_config['board_code'] = $url_array['brd'];
+				$file_config['insert_idx'] = $result['idx'];
+
+				$this->view_data['file_result'] = $this->file_model->get_data($file_config);	
+			}
+			
 			unset($url_array['idx']);
 			$this->view_data['url'] = $this->uri->assoc_to_uri($url_array);
 			$this->view_data['search_string'] = '/manager/board/listing/'.$this->view_data['url'];
-			$this->view_data['next_url'] = '/manager/board/update/'.$this->view_data['url'];
-			$skin = $this->board_drv->get_attr('board_skin');
-			$this->view_data['file_use'] = $this->board_drv->get_attr('etc.board_file_use');//파일 사용 여부
+			$this->view_data['next_url'] = '/manager/board/update/'.$this->view_data['url'];			
 
 			//레이아웃 처리(출력)
+			$skin = $this->board_drv->get_attr('board_skin');
 			$this->view_data['head_file_name'] = 'manager/board/'.$skin.'/head';
 			$this->view_data['main_file_name'] = 'manager/board/'.$skin.'/write';
 			$this->load->view($this->view_data['index_file_name'], $this->view_data);
-	
-			if($config['debug'] == 'Y')
-			{
-				print_rr($this->view_data, FALSE, 'controll view data');
-				$this->board_drv->write_error(TRUE, 'debug');
-			}	
 		}
 		else
 		{
-			$result = $this->board_drv->update($idx, $config);
+			try{
+				$result = $this->board_drv->update($idx, $config);
+			}catch(Exception $e){
+				Log_message('error', 'board_update_fail');
+				alert($this->lang->line('board_update_fail'), '', TRUE);
+			}			
+			
 			$error_str = '';
 			foreach($this->board_drv->get_attr('etc.file_list') as $key=>$list)
 			{

@@ -2,7 +2,6 @@
 /**
  * @title 게시판 - 공지사항 게시판 클래스
  * @author - 원종필(won0334@chol.com)
- * @history
  * */
 class Board_drv_notice extends CI_Driver 
 {
@@ -21,9 +20,7 @@ class Board_drv_notice extends CI_Driver
 	/**
 	 * @title 게시판 - 게시판 초기화 처리
 	 * @author 원종필(won0334@chol.com)
-	 * @history
-	 * @param (array)$config : 게시판 설정값
-	 * @return NULL
+	 * @param Array $config : 게시판 설정값
 	 */	
 	public function initialize($config)
 	{
@@ -38,9 +35,7 @@ class Board_drv_notice extends CI_Driver
 	/**
 	 * @title 게시판 기본 속성 정보 가져오기
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param (string)$attr_name : 속성명 - 다중 속성 설정시에는 '.'로 구분
-	 * @return NULL
 	 */
 	public function get_attr($attr_name)
 	{
@@ -66,10 +61,8 @@ class Board_drv_notice extends CI_Driver
 	/**
 	 * @title 게시판 기본 속성 정보 설정하기
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param (string)$attr_name : 속성명
-	 * @param (복합)$attr_value : 속성값
-	 * @return NULL
+	 * @param Mix $attr_value : 속성값
 	 */
 	public function set_attr($attr_name, $attr_value)
 	{
@@ -78,115 +71,43 @@ class Board_drv_notice extends CI_Driver
 	/**
 	 * @title 게시판
 	 * @author 원종필(won0334@chol.com)
-	 * @history
-	 * @param (array)$config : 게시판 설정값
+	 * @param Array $config : 게시판 설정값
 	 * @return boolean $result['result'] : insert 결과 ( true: 성공 false : 실패)
-	 * @return string $result['error'] : 에러 메세지 //
+	 * @return Int $result['idx'] : 일련번호
 	 */
-	public function insert()
+	public function insert($parm = array())
 	{
     	$data['title'] = $this->CI->input->post('title');
     	$data['contents'] = $this->CI->input->post('contents');
     	$data['status'] = $this->CI->input->post('status');
-    	if($this->board_code == 'notice') $data['top_notice'] = $this->CI->input->post('top_notice');
+    	$data['top_notice'] = $this->CI->input->post('top_notice');
     	$data['reg_date'] = date('Y-m-d H:i:s');
 
-		$result['result'] = $this->CI->db->insert($this->board_table_name, $data);
-		$insert_idx = $result['idx'] = $this->CI->db->insert_id();
-		
-		if($result['result'] === FALSE)
-		{
-			$this->add_debug($this->board_table_name.'_regist_error', '게시물 등록이 실패 하였습니다.');
-			$this->add_debug($this->board_table_name.'_regist_query', $this->CI->db->last_query());
-		}	
-		
 		if($this->debug == 'Y')
 		{
-			$this->add_debug($this->board_table_name.'_insert_result', $result['result']);
-			$this->add_debug($this->board_table_name.'_insert_data', json_encode($data));
-			$this->add_debug($this->board_table_name.'_insert_query', $this->CI->db->last_query());
-		}		
-		
-		if($this->get_attr('etc.board_file_use') == 'Y')
-		{
-			$this->CI->load->library('upload');
-			$this->CI->load->library('image_lib');
-			
-			foreach($this->get_attr('etc.file_list') as $key=>$list)
-			{
-				$upload_config['upload_path'] = $list['upload_path'];
-				$upload_config['allowed_types'] = $list['board_file_allow'];
-				$upload_config['max_size'] = $list['board_file_size'];
-				$upload_config['encrypt_name'] = TRUE;
-				$this->CI->upload->initialize($upload_config);
-				
-				if($this->debug == 'Y') $this->add_debug($this->board_table_name.'_upload_config', @json_encode($upload_config));
-								
-				if(isset($_FILES[$key]) === TRUE && empty($_FILES[$key]['tmp_name']) === FALSE)
-				{
-					if ( ! $this->CI->upload->do_upload($key))
-					{
-						$this->add_debug($list.'_error', implode(' : ', $this->CI->upload->display_errors()));
-					}
-					else
-					{
-						$upload_data = $this->CI->upload->data();
-						$file_info = array(
-								'file_name'=>$upload_data['file_name'],
-								'org_name'=>$upload_data['orig_name'],
-								'file_size'=>$upload_data['file_size'],
-								'file_type'=>$upload_data['file_type'],
-								'board_id'=>$this->board_code,
-								'board_idx'=>$insert_idx,
-								'field_name'=>$key,
-								'reg_date'=>date('Y-m-d H:i:s')
-						);
-						
-						if($list['thumb_use'] == 'Y')
-						{
-							$thumb_config['source_image'] = $upload_config['upload_path'].$upload_data['file_name'];
-							$thumb_config['create_thumb'] = TRUE;
-
-							$this->CI->image_lib->initialize($thumb_config);
-							$this->CI->image_lib->resize();
-						
-							if ( $this->CI->image_lib->resize() === FALSE)
-							{
-								$this->add_debug($this->board_table_name.'_thumb_fail', $this->image_lib->display_errors()); 
-							}							
-							else
-							{
-								$thumb_file_name = "";
-								$temp = explode(".", $upload_data['file_name']);
-								for($i=0;$i<sizeof($temp)-1;$i++) $thumb_file_name = $thumb_file_name.$temp[$i].".";
-								$thumb_file_name = substr($thumb_file_name, 0, -1);
-								$thumb_file_name .= "_thumb.".$temp[sizeof($temp)-1];
-								$file_info['thumb_name'] = $thumb_file_name;
-							} 
-							
-							$this->CI->image_lib->clear();
-						}						
-						
-						$result['file_result'][$key] = $this->CI->db->insert('file_info', $file_info);
-						if($this->debug == 'Y') 
-						{
-							$this->add_debug($this->board_table_name.'_upload_data', @json_encode($file_info));
-							$this->add_debug($this->board_table_name.'_upload_data_query', $this->CI->db->last_query());
-							$this->add_debug($this->board_table_name.'_upload_thumb_data', @$thumb_file_name);
-						}
-					}
-				}		
-			}
+			$log_data = $data;
+			$log_data['log_title'] = 'insert post data';
+			Log_message('tdebug', $log_data);
 		}
+		$result['result'] = $this->CI->db->insert($this->board_table_name, $data);
+		$result['idx'] = $this->CI->db->insert_id();
+
+		if($this->debug == 'Y')
+		{
+			$data['log_title'] = 'insert result';
+			$data['inser result idx'] = $result['idx'];
+			$data['query'] = $this->CI->db->last_query();
+			$data['result'] = $result['result'];
+			Log_message('tdebug', $data);
+		}		
 
 		return $result;
 	}
 	/**
 	 * @title 게시판 - 수정
 	 * @author 원종필(won0334@chol.com)
-	 * @history
-	 * @param (int)$idx : 게시물 일련번호
-	 * @param (array)$config : 게시판 설정값
+	 * @param Int $idx : 게시물 일련번호
+	 * @param Array $config : 게시판 설정값
 	 * @return NULL
 	 */
 	public function update($idx, $config)
@@ -225,7 +146,7 @@ class Board_drv_notice extends CI_Driver
 				{
 					foreach($old_data['file_info'] as $f_key=>$f_list)
 					{
-						if((int)$f_list['idx'] == (int)$del_list)
+						if($f_list['idx'] == $del_list)
 						{
 							@unlink($upload_config['upload_path'].$f_list['file_name']);
 							$this->CI->db->where('idx', $del_list);
@@ -360,9 +281,8 @@ class Board_drv_notice extends CI_Driver
 	/**
 	 * @title 게시판 - 삭제
 	 * @author 원종필(won0334@chol.com)
-	 * @history
-	 * @param (int)$idx : 게시물 일련번호
-	 * @param (array)$config : 게시판 설정값
+	 * @param Int $idx : 게시물 일련번호
+	 * @param Array $config : 게시판 설정값
 	 * @return NULL
 	 */
 	public function delete($idx, $config)
@@ -415,15 +335,19 @@ class Board_drv_notice extends CI_Driver
 	/**
 	 * @title 게시판 - 리스트
 	 * @author 원종필(won0334@chol.com)
-	 * @history
-	 * @param (array)$parm : 리스트 설정값
-	 * @return NULL
+	 * @param Array $parm : 리스트 설정값
+	 * @return Int $return_result['vnum'] : 가상 일련번호
+	 * @return Int $return_result['record_count'] : 게시물 갯수
+	 * @return Array $return_result['result'] : 게시물 내용
 	 */
-	public function get_list(array $parm = array()) 
+	public function get_list($parm = array()) 
 	{
-		if($this->debug != 'N') $this->set_debug('get list config', json_encode($parm));
 		if(count($parm) > 0) $this->initialize($parm);//외부 설정값이 있으면 먼저 설정
-		if( empty($this->board_table_name) === TRUE ) throw new Exception('board_no_table_name');
+		if( empty($this->board_table_name) === TRUE )
+		{
+			Log_message('error', 'board_no_table_name');
+			throw new Exception('board_no_table_name');
+		}
 		$parm['off_set'] = ($parm['page']-1) * $this->per_page;
 		//여기서부터 실제 데이터를 가져오는 처리
 		$this->CI->db->select('SQL_CALC_FOUND_ROWS a.*', FALSE);
@@ -471,8 +395,12 @@ class Board_drv_notice extends CI_Driver
 		}
 		
 		$return_result['result'] = $this->CI->db->get()->result_array();
-		if($this->debug != 'N') $this->set_debug('get list query', $this->CI->db->last_query());
-
+		if($this->debug == 'Y')
+		{
+			$log_data['log_title'] = 'get list query';
+			$log_data['query'] = $this->CI->db->last_query();
+			Log_message('tdebug', $log_data);
+		}	
 		$this->CI->db->select("FOUND_ROWS() cnt", false);
 		$return_result['record_count'] = $this->CI->db->get()->row(1)->cnt;
 	
@@ -492,44 +420,30 @@ class Board_drv_notice extends CI_Driver
 	/**
 	 * @title 게시판 - 단일 게시물 정보 기져오기
 	 * @author 원종필(won0334@chol.com)
-	 * @history
-	 * @param (int)$idx : 게시물 일련번호
-	 * @return NULL
+	 * @param Int $idx : 게시물 일련번호
+	 * @return Array $result : 게시물 정보 없을 경우에는 false
 	 */
 	public function get_data($idx)
 	{
 		$this->CI->db->where('a.idx', $idx);
 		$this->CI->db->from($this->board_table_name.' a');//나중에 join을 할 수도 있으므로 별칭으로 관리한다.
-		$result['result'] = $this->CI->db->get()->row_array();
+		$result = $this->CI->db->get()->row_array();
 		
 		if( $this->debug == 'Y' )
 		{
-			$this->add_debug($this->board_table_name.'_getdata_idx', $idx);
-			$this->add_debug($this->board_table_name.'_getdata_query', $this->CI->db->last_query());
+			$log_data['log_title'] = 'get list query';
+			$log_data['board_table_name'] = $this->board_table_name;
+			$log_data['query'] = $this->CI->db->last_query();
+			Log_message('tdebug', $log_data);
 		}		
 
-		if($this->get_attr('etc.board_file_use') == 'Y')
-		{		
-			$this->CI->db->from('file_info');
-			$this->CI->db->where('board_id', $this->board_code);
-			$this->CI->db->where('board_idx', $idx);
-			$file_info = $this->CI->db->get()->result_array();
-			
-			foreach($file_info as $key=>$list)
-			{
-				$result['file_info'][$list['field_name']] = $list;
-			}		
-	
-			if( $this->debug == 'Y' ) $this->add_debug($this->board_table_name.'_getdata_file', @json_encode($result['file_info']));
-		}
-		
 		return $result;
 	}
 	/**
 	 * @title 게시판 최근 데이터 가져오기
 	 * @author 원종필(won0334@chol.com)
 	 * @history 메인에서 최근 게시물을 가져오고자 할때 사용
-	 * @param (int)$count : 게시물 갯수
+	 * @param Int $count : 게시물 갯수
 	 * @return NULL
 	 */
 	public function get_top_data($parm = array())
@@ -560,8 +474,7 @@ class Board_drv_notice extends CI_Driver
 	/**
 	 * @title 게시판 - 조회수 증가
 	 * @author 원종필(won0334@chol.com)
-	 * @history
-	 * @param (int)$idx : 게시물 일련번호
+	 * @param Int $idx : 게시물 일련번호
 	 * @return NULL
 	 */
 	public function hit($idx)
@@ -573,9 +486,8 @@ class Board_drv_notice extends CI_Driver
 		return $return_result;
 	}	
 	/**
-	 * 게시판 - 다음 게시물 조회
+	 * @title 게시판 - 다음 게시물 조회
 	 * @author - 원종필(won0334@chol.com)
-	 * 작업내역 :
 	 * @return NULL
 	 * */
 	public function get_next($idx)
@@ -589,9 +501,8 @@ class Board_drv_notice extends CI_Driver
 		return $result;
 	}
 	/**
-	 * 게시판 - 이전 게시물 조회
-	 * @author - 원종필(won0334@chol.com)
-	 * 작업내역 :
+	 * @title 게시판 - 이전 게시물 조회
+	 * @author 원종필(won0334@chol.com)
 	 * @return NULL
 	 * */
 	public function get_prev($idx)

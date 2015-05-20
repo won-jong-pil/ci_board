@@ -12,6 +12,7 @@ $lang['board_no_info']			= '게시판 정보가 존재하지 않습니다.';
 $lang['board_no_table_name']	= '테이블이 존재하지 않습니다.';
 $lang['board_delete_fail']		= '게시물 삭제에 실패하였습니다.';
 $lang['board_no_idx']			= '게시판 일련번호가 전달되지 않았습니다.';
+$lang['board_no_data']			= '게시물 정보를 가져올수 없습니다.';
 
 $lang['board_rule_title']			= '제목은 필수 항목입니다.';
 $lang['board_rule_contents']			= '내용은 필수 항목입니다.';

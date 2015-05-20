@@ -2,7 +2,6 @@
 /**
  * @title 게시판
  * @author 원종필(won0334@chol.com)
- * @history
  * */
 class Board_drv extends CI_Driver_Library {
 	public $CI = NULL;//CI instance
@@ -15,7 +14,6 @@ class Board_drv extends CI_Driver_Library {
 	/**
 	 * @title 게시판 - 게시판
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 */	
 	public function __construct($parm = array())
 	{
@@ -24,8 +22,9 @@ class Board_drv extends CI_Driver_Library {
 		{
 			if($this->debug == 'Y')
 			{
-				$parm['log_title'] = 'construct config';
-				Log_message('tdebug', $parm);
+				$log_data = $parm;
+				$log_data['log_title'] = 'construct config';
+				Log_message('tdebug', $log_data);
 			}
 			$this->CI = &get_instance();
 			$this->_initialize($parm);
@@ -39,14 +38,13 @@ class Board_drv extends CI_Driver_Library {
 	/**
 	 * @title 게시판 - 게시판 종료 처리
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 */
 	public function __destruct(){}
 	/**
 	 * @title 데이터 베이스 설정 변경
 	 * @author 원종필(won0334@chol.com)
 	 * @history
-	 * @param Array $config : 게시판 설정값
+	 * @param Array $database_name : db 명
 	 * @return NULL
 	 */
 	public function set_db_instance($database_name = 'erp')
@@ -59,17 +57,16 @@ class Board_drv extends CI_Driver_Library {
 	/**
 	 * @title 게시판 - 게시판 초기화 처리
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param Array $parm : 게시판 설정값
-	 * @return NULL
 	 */
 	public function _initialize($parm = array())
 	{
 		$info = $this->get_board_info($parm['board_code']);
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'init cofig';
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'init cofig';
+			Log_message('tdebug', $log_data);
 			$info['log_title'] = 'init get board info';
 			Log_message('tdebug', $info);
 		}
@@ -91,10 +88,8 @@ class Board_drv extends CI_Driver_Library {
 	/**
 	 * @title 게시판 기본 속성 정보 설정하기
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param String $attr_name : 속성명
 	 * @param Mix $attr_value : 속성값
-	 * @return NULL
 	 */
 	public function set_attr($attr_name, $attr_value)
 	{
@@ -103,10 +98,7 @@ class Board_drv extends CI_Driver_Library {
 	/**
 	 * @title 게시판
 	 * @author 원종필(won0334@chol.com)
-	 * @history
-	 * @param Array $config : 게시판 설정값
-	 * @return Boolean $result['result'] : insert 결과 ( true: 성공 false : 실패)
-	 * @return String $result['error'] : 에러 메세지 
+	 * @param Array $parm : 게시판 설정값 -- 이거는 혹시 모를 값
 	 */
 	public function insert($parm = array())
 	{
@@ -120,102 +112,96 @@ class Board_drv extends CI_Driver_Library {
 	/**
 	 * @title 게시판 - 수정
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param Int $idx : 게시물 일련번호
-	 * @param Array $config : 게시판 설정값
-	 * @return NULL
+	 * @param Array $parm : 게시판 설정값
 	 */
-	public function update($idx, $parm)
+	public function update($idx, $parm = array())
 	{
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'update config';
-			$parm['idx'] = $idx;
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'update config';
+			$log_data['idx'] = $idx;
+			Log_message('tdebug', $log_data);
 		}
 		return $this->{$this->_now_type}->update($idx, $parm);
 	}
 	/**
 	 * @title 게시판 - 삭제
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param Int $idx : 게시물 일련번호
-	 * @param Array $config : 게시판 설정값
-	 * @return NULL
+	 * @param Array $parm : 게시판 설정값
 	 */
 	public function delete($idx, $parm = array())
 	{
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'delete config';
-			$parm['idx'] = $idx;
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'delete config';
+			$log_data['idx'] = $idx;
+			Log_message('tdebug', $log_data);
 		}		
 		return $this->{$this->_now_type}->delete($idx, $parm);
 	}
 	/**
 	 * @title 게시판 - 리스트
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param Array $parm : 리스트 설정값
-	 * @return NULL
 	 */
 	public function get_list($parm = array())
 	{
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'dget list config';
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'get list config';
+			Log_message('tdebug', $log_data);
 		}			
 		return $this->{$this->_now_type}->get_list($parm);
 	}
 	/**
 	 * @title 게시판 - 단일 게시물 정보 기져오기
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param Int $idx : 게시물 일련번호
-	 * @return NULL
 	 */
 	public function get_data($idx)
 	{
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'get data idx';
-			$parm['idx'] = $idx;
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'get data idx';
+			$log_data['idx'] = $idx;
+			Log_message('tdebug', $log_data);
 		}			
 		return $this->{$this->_now_type}->get_data($idx);
 	}
 	/**
 	 * @title 게시판 최근 데이터 가져오기
 	 * @author 원종필(won0334@chol.com)
-	 * @history 
-	 * @param Int $count : 게시물 갯수
-	 * @return NULL
+	 * @param Array $parm : 설정값
 	 */
 	public function get_top_data($parm = array())
 	{
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'get top data config';
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'get top data config';
+			Log_message('tdebug', $log_data);
 		}		
 		return $this->{$this->_now_type}->get_top_data($parm);
 	}
 	/**
 	 * @title 게시판 - 조회수 증가
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param Int $idx : 게시물 일련번호
-	 * @return NULL
 	 */
 	public function hit($idx)
 	{
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'hit idx';
-			$parm['idx'] = $idx;
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'hit idx';
+			$log_data['idx'] = $idx;
+			Log_message('tdebug', $log_data);
 		}		
 		return $this->{$this->_now_type}->hit($idx);
 	}
@@ -223,41 +209,38 @@ class Board_drv extends CI_Driver_Library {
 	/**
 	 * @title 게시판 - 다음 게시물 조회
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param Int $idx : 게시물 일련번호
-	 * @return 다음 게시물 정보
 	 */
 	public function get_next($idx)
 	{
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'get next idx';
-			$parm['idx'] = $idx;
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'get next idx';
+			$log_data['idx'] = $idx;
+			Log_message('tdebug', $log_data);
 		}		
 		return $this->{$this->_now_type}->get_next($idx);
 	}
 	/**
 	 * @title 게시판 - 이전 게시물 조회
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param Int $idx : 게시물 일련번호
-	 * @return 이전 게시물 정보
 	 */
 	public function get_prev($idx)
 	{
 		if($this->debug == 'Y')
 		{
-			$parm['log_title'] = 'get prev idx';
-			$parm['idx'] = $idx;
-			Log_message('tdebug', $parm);
+			$log_data = $parm;
+			$log_data['log_title'] = 'get prev idx';
+			$log_data['idx'] = $idx;
+			Log_message('tdebug', $log_data);
 		}		
 		return $this->{$this->_now_type}->get_prev($idx);
 	}
 	/**
 	 * @title 게시판 기본 정보 가져오기
 	 * @author 원종필(won0334@chol.com)
-	 * @history
 	 * @param String $board_code : 게시판 코드
 	 * @return $board_info : 게시판 정보 배열
 	 */
@@ -280,8 +263,9 @@ class Board_drv extends CI_Driver_Library {
 		}
 		if($this->debug == 'Y')
 		{
-			$board_info['log_title'] = 'get board info';
-			Log_message('tdebug', $board_info);			
+			$log_data = $board_info;
+			$log_data['log_title'] = 'get board info';
+			Log_message('tdebug', $log_data);			
 		}
 		if(is_null($board_info['etc']) === FALSE && empty($board_info['etc']) === FALSE)
 		{
@@ -304,8 +288,9 @@ class Board_drv extends CI_Driver_Library {
 		}
 		if($this->debug == 'Y')
 		{
-			$board_info['log_title'] = 'return board info';
-			Log_message('tdebug', $board_info);			
+			$log_data = $board_info;
+			$log_data['log_title'] = 'return board info';
+			Log_message('tdebug', $log_data);			
 		}
 		return $board_info;
 	}
